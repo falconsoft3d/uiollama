@@ -63,7 +63,38 @@ cp .env.local.example .env.local
 
 Por defecto, la aplicación se conecta a `http://localhost:11434`.
 
-## 🚦 Uso
+## � Instalación automática con script
+
+Para una instalación rápida en servidor Linux, puedes usar el script de instalación automatizado:
+
+```bash
+# Descargar o clonar el proyecto
+git clone https://github.com/tu-usuario/uiollama.git
+cd uiollama
+
+# Dar permisos de ejecución al script
+chmod +x install.sh
+
+# Ejecutar el script de instalación
+./install.sh
+```
+
+El script instalará y configurará automáticamente:
+- ✅ Node.js 18+ (si no está instalado)
+- ✅ Dependencias del proyecto
+- ✅ Build de producción
+- ✅ PM2 para gestión de procesos
+- ✅ Nginx como reverse proxy (opcional)
+- ✅ Certificado SSL con Let's Encrypt (opcional)
+- ✅ Firewall UFW (opcional)
+
+**Nota:** El script NO instala Ollama. Debes instalarlo manualmente antes:
+```bash
+curl -fsSL https://ollama.ai/install.sh | sh
+ollama pull llama3.3  # o el modelo que prefieras
+```
+
+## �🚦 Uso
 
 ### Modo desarrollo
 
@@ -350,6 +381,16 @@ sudo systemctl restart nginx
 pm2 monit
 htop
 ```
+
+
+# Instalación rápida con script
+```bash
+git clone https://github.com/falconsoft3d/uiollama.git
+cd uiollama
+chmod +x install.sh
+./install.sh
+```bash
+
 
 ### Actualizar la aplicación
 
