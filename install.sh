@@ -89,8 +89,8 @@ if [ ! -f ".env.local" ]; then
         cp .env.local.example .env.local
         print_success "Archivo .env.local creado"
     else
-        echo "OLLAMA_API_URL=http://localhost:11434" > .env.local
-        print_success "Archivo .env.local creado con configuración por defecto"
+        echo "OLLAMA_API_URL=http://127.0.0.1:11434" > .env.local
+        print_success "Archivo .env.local creado con configuración por defecto (usando 127.0.0.1)"
     fi
 else
     print_success "Archivo .env.local ya existe"
