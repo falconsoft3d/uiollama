@@ -93,7 +93,24 @@ El script instalará y configurará automáticamente:
 curl -fsSL https://ollama.ai/install.sh | sh
 ollama pull llama3.3  # o el modelo que prefieras
 ```
+### Diagnóstico y solución de problemas
 
+Si tienes problemas después de la instalación (especialmente si los modelos no aparecen), usa el script de diagnóstico:
+
+```bash
+./diagnose.sh
+```
+
+Este script verificará:
+- ✅ Instalación y estado de Ollama
+- ✅ Modelos disponibles
+- ✅ Configuración de Node.js y PM2
+- ✅ Variables de entorno (.env.local)
+- ✅ Estado del build de Next.js
+- ✅ Respuesta de la API
+- ✅ Puertos en uso
+
+El script también te dará soluciones específicas para cada problema detectado.
 ## �🚦 Uso
 
 ### Modo desarrollo
@@ -415,6 +432,35 @@ pm2 restart uiollama
 ```
 
 ### Solución de problemas
+
+**Problema: Los modelos no aparecen en la interfaz**
+
+Usa el script de diagnóstico para identificar el problema:
+```bash
+./diagnose.sh
+```
+
+Soluciones comunes:
+1. Verificar que Ollama esté ejecutándose:
+   ```bash
+   curl http://localhost:11434/api/tags
+   ```
+
+2. Verificar que la API de la app funcione:
+   ```bash
+   curl http://localhost:3000/api/models
+   ```
+
+3. Si .env.local cambió después del build:
+   ```bash
+   npm run build
+   pm2 restart uiollama
+   ```
+
+4. Ver logs de la aplicación:
+   ```bash
+   pm2 logs uiollama
+   ```
 
 **Problema: La aplicación no se conecta a Ollama**
 ```bash

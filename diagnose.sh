@@ -166,6 +166,9 @@ if curl -s http://localhost:3000 &> /dev/null; then
     else
         print_error "API /api/models no responde correctamente"
         echo "Respuesta: $MODELS_RESPONSE"
+        echo ""
+        print_info "Últimas 10 líneas de logs de PM2:"
+        pm2 logs uiollama --lines 10 --nostream 2>/dev/null || echo "No se pudieron obtener los logs"
     fi
 else
     print_error "La aplicación no responde en http://localhost:3000"
