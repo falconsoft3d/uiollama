@@ -52,8 +52,13 @@ if command -v node &> /dev/null; then
     print_success "Node.js ya está instalado: $NODE_VERSION"
 else
     print_warning "Node.js no encontrado. Instalando Node.js 18..."
-    curl -fsSL https://deb.nodesource.com/setup_18.x | $SUDO -E bash -
-    $SUDO apt install -y nodejs
+    if [[ $EUID -eq 0 ]]; then
+        curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+        apt install -y nodejs
+    else
+        curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+        sudo apt install -y nodejs
+    fi
     print_success "Node.js instalado correctamente"
 fi
 
@@ -121,7 +126,11 @@ print_success "Aplicación iniciada con PM2"
 
 # Configurar PM2 para arranque automático
 print_info "Configurando inicio automático..."
-$SUDO env PATH=$PATH:/usr/bin pm2 startup systemd -u $USER --hp $HOME
+if [[ $EUID -eq 0 ]]; then
+    env PATH=$PATH:/usr/bin pm2 startup systemd -u $USER --hp $HOME
+else
+    sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u $USER --hp $HOME
+fi
 pm2 save
 print_success "Inicio automático configurado"
 echo ""
