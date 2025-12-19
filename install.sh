@@ -82,6 +82,21 @@ npm install
 print_success "Dependencias instaladas"
 echo ""
 
+# Paso 2.5: Configurar archivo .env.local ANTES del build
+print_info "Configurando variables de entorno..."
+if [ ! -f ".env.local" ]; then
+    if [ -f ".env.local.example" ]; then
+        cp .env.local.example .env.local
+        print_success "Archivo .env.local creado"
+    else
+        echo "OLLAMA_API_URL=http://localhost:11434" > .env.local
+        print_success "Archivo .env.local creado con configuración por defecto"
+    fi
+else
+    print_success "Archivo .env.local ya existe"
+fi
+echo ""
+
 # Paso 3: Construir la aplicación
 print_info "Construyendo la aplicación para producción..."
 npm run build
@@ -99,22 +114,7 @@ else
 fi
 echo ""
 
-# Paso 5: Configurar archivo .env.local
-print_info "Configurando variables de entorno..."
-if [ ! -f ".env.local" ]; then
-    if [ -f ".env.local.example" ]; then
-        cp .env.local.example .env.local
-        print_success "Archivo .env.local creado"
-    else
-        echo "OLLAMA_API_URL=http://localhost:11434" > .env.local
-        print_success "Archivo .env.local creado con configuración por defecto"
-    fi
-else
-    print_success "Archivo .env.local ya existe"
-fi
-echo ""
-
-# Paso 6: Configurar PM2
+# Paso 5: Configurar PM2 (movido de la posición anterior)
 print_info "Configurando PM2 para ejecutar la aplicación..."
 
 # Detener proceso anterior si existe
@@ -135,7 +135,7 @@ pm2 save
 print_success "Inicio automático configurado"
 echo ""
 
-# Paso 7: Preguntar sobre Nginx
+# Paso 6: Preguntar sobre Nginx
 echo ""
 print_info "¿Deseas instalar y configurar Nginx como reverse proxy? (recomendado para producción)"
 read -p "Instalar Nginx? (s/n): " -n 1 -r
@@ -264,4 +264,44 @@ echo ""
 print_warning "Nota: Asegúrate de que Ollama esté instalado y ejecutándose"
 print_info "Para instalar Ollama: curl -fsSL https://ollama.ai/install.sh | sh"
 echo ""
+
+# Verificaciones finales
+print_info "Verificaciones finales:"
+echo ""
+
+# Verificar Ollama
+if command -v ollama &> /dev/null; then
+    print_success "Ollama está instalado"
+    
+    # Verificar si Ollama está corriendo
+    if curl -s http://localhost:11434/api/tags &> /dev/null; then
+        print_success "Ollama está ejecutándose correctamente"
+        
+        # Mostrar modelos disponibles
+        MODELS_COUNT=$(curl -s http://localhost:11434/api/tags | grep -o '"name"' | wc -l)
+        if [ "$MODELS_COUNT" -gt 0 ]; then
+            print_success "Modelos detectados: $MODELS_COUNT"
+        else
+            print_warning "No hay modelos instalados. Instala uno con: ollama pull llama3.3"
+        fi
+    else
+        print_warning "Ollama no está respondiendo. Verifica con: sudo systemctl status ollama"
+    fi
+else
+    print_warning "Ollama no está instalado. Instálalo con: curl -fsSL https://ollama.ai/install.sh | sh"
+fi
+
+echo ""
 print_success "¡Instalación finalizada con éxito!"
+echo ""
+print_info "Comandos útiles:"
+echo "  Ver logs de la aplicación: pm2 logs uiollama"
+echo "  Reiniciar la aplicación: pm2 restart uiollama"
+echo "  Detener la aplicación: pm2 stop uiollama"
+echo "  Ver estado: pm2 status"
+echo ""
+print_info "Para solucionar problemas con modelos:"
+echo "  1. Verifica Ollama: curl http://localhost:11434/api/tags"
+echo "  2. Verifica la app: curl http://localhost:3000/api/models"
+echo "  3. Revisa variables de entorno: cat .env.local"
+echo "  4. Reconstruye si es necesario: npm run build && pm2 restart uiollama"
