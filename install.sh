@@ -34,10 +34,12 @@ print_error() {
     echo -e "${RED}✗ $1${NC}"
 }
 
-# Verificar si se ejecuta como root
+# Detectar si se ejecuta como root y ajustar comandos
 if [[ $EUID -eq 0 ]]; then
-   print_error "No ejecutes este script como root. Usa un usuario normal con sudo."
-   exit 1
+    SUDO=""
+    print_warning "Ejecutando como root. Se recomienda usar un usuario normal con sudo."
+else
+    SUDO="sudo"
 fi
 
 print_info "Iniciando instalación..."
@@ -50,8 +52,8 @@ if command -v node &> /dev/null; then
     print_success "Node.js ya está instalado: $NODE_VERSION"
 else
     print_warning "Node.js no encontrado. Instalando Node.js 18..."
-    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-    sudo apt install -y nodejs
+    curl -fsSL https://deb.nodesource.com/setup_18.x | $SUDO -E bash -
+    $SUDO apt install -y nodejs
     print_success "Node.js instalado correctamente"
 fi
 
@@ -87,7 +89,7 @@ if command -v pm2 &> /dev/null; then
     print_success "PM2 ya está instalado"
 else
     print_warning "PM2 no encontrado. Instalando PM2..."
-    sudo npm install -g pm2
+    $SUDO npm install -g pm2
     print_success "PM2 instalado correctamente"
 fi
 echo ""
@@ -119,7 +121,7 @@ print_success "Aplicación iniciada con PM2"
 
 # Configurar PM2 para arranque automático
 print_info "Configurando inicio automático..."
-sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u $USER --hp $HOME
+$SUDO env PATH=$PATH:/usr/bin pm2 startup systemd -u $USER --hp $HOME
 pm2 save
 print_success "Inicio automático configurado"
 echo ""
@@ -132,7 +134,7 @@ echo ""
 
 if [[ $REPLY =~ ^[SsYy]$ ]]; then
     print_info "Instalando Nginx..."
-    sudo apt install -y nginx
+    $SUDO apt install -y nginx
     
     # Pedir dominio o IP
     echo ""
@@ -142,7 +144,7 @@ if [[ $REPLY =~ ^[SsYy]$ ]]; then
     # Crear configuración de Nginx
     NGINX_CONF="/etc/nginx/sites-available/uiollama"
     
-    sudo tee $NGINX_CONF > /dev/null <<EOF
+    $SUDO tee $NGINX_CONF > /dev/null <<EOF
 server {
     listen 80;
     server_name $DOMAIN;
@@ -162,14 +164,14 @@ server {
 EOF
     
     # Habilitar sitio
-    sudo ln -sf $NGINX_CONF /etc/nginx/sites-enabled/uiollama
+    $SUDO ln -sf $NGINX_CONF /etc/nginx/sites-enabled/uiollama
     
     # Verificar configuración
-    sudo nginx -t
+    $SUDO nginx -t
     
     # Reiniciar Nginx
-    sudo systemctl restart nginx
-    sudo systemctl enable nginx
+    $SUDO systemctl restart nginx
+    $SUDO systemctl enable nginx
     
     print_success "Nginx configurado y en ejecución"
     
@@ -181,10 +183,10 @@ EOF
     
     if [[ $REPLY =~ ^[SsYy]$ ]]; then
         print_info "Instalando Certbot..."
-        sudo apt install -y certbot python3-certbot-nginx
+        $SUDO apt install -y certbot python3-certbot-nginx
         
         print_info "Obteniendo certificado SSL..."
-        sudo certbot --nginx -d $DOMAIN --non-interactive --agree-tos --register-unsafely-without-email || print_warning "No se pudo obtener el certificado SSL. Configúralo manualmente más tarde."
+        $SUDO certbot --nginx -d $DOMAIN --non-interactive --agree-tos --register-unsafely-without-email || print_warning "No se pudo obtener el certificado SSL. Configúralo manualmente más tarde."
     fi
 fi
 
@@ -199,23 +201,23 @@ if [[ $REPLY =~ ^[SsYy]$ ]]; then
     print_info "Configurando UFW..."
     
     # Instalar UFW si no está instalado
-    sudo apt install -y ufw
+    $SUDO apt install -y ufw
     
     # Permitir SSH primero (importante!)
-    sudo ufw allow ssh
+    $SUDO ufw allow ssh
     
     # Permitir puertos web
     if command -v nginx &> /dev/null; then
-        sudo ufw allow 'Nginx Full'
+        $SUDO ufw allow 'Nginx Full'
     else
-        sudo ufw allow 3000/tcp
+        $SUDO ufw allow 3000/tcp
     fi
     
     # Habilitar UFW
-    sudo ufw --force enable
+    $SUDO ufw --force enable
     
     print_success "Firewall configurado"
-    sudo ufw status
+    $SUDO ufw status
 fi
 
 echo ""
@@ -232,7 +234,7 @@ echo ""
 
 if command -v nginx &> /dev/null && [ ! -z "$DOMAIN" ]; then
     echo "  🌐 URL: http://$DOMAIN"
-    if sudo certbot certificates 2>/dev/null | grep -q "Certificate Name: $DOMAIN"; then
+    if $SUDO certbot certificates 2>/dev/null | grep -q "Certificate Name: $DOMAIN"; then
         echo "  🔒 URL segura: https://$DOMAIN"
     fi
 else
