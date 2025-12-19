@@ -32,6 +32,13 @@ export default function Header({ onClearChat, selectedModel, onModelChange }: He
           selectedModel={selectedModel}
           onModelChange={onModelChange}
         />
+        <a
+          href="/api-docs"
+          target="_blank"
+          className="px-3 py-1.5 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors flex items-center gap-1"
+        >
+          📚 API Docs
+        </a>
         <button
           onClick={onClearChat}
           className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"

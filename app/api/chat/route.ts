@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyApiToken } from "@/lib/auth";
 
 const OLLAMA_API_URL = process.env.OLLAMA_API_URL || "http://127.0.0.1:11434";
 
 export async function POST(request: NextRequest) {
+  // Verificar autenticación
+  const authError = verifyApiToken(request);
+  if (authError) {
+    return authError;
+  }
   try {
     const { messages, model } = await request.json();
 
